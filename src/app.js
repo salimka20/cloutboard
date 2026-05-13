@@ -21,46 +21,103 @@ document.addEventListener('click', e => {
 });
 
 // ===================== SEARCH =====================
+let searchTimeout = null;
+
 function setupSearch(inputId, dropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
 
   input.addEventListener('input', () => {
-    const q = input.value.trim().toLowerCase();
-    if (q.length < 1) {
+    const q = input.value.trim();
+    if (q.length < 2) {
       dropdown.classList.add('hidden');
       return;
     }
-    const results = creators.filter(c =>
-      c.name.toLowerCase().includes(q) || c.handle.toLowerCase().includes(q)
-    );
-    if (results.length === 0) {
-      dropdown.innerHTML = '<div class="search-result"><span style="color:var(--text-muted)">No creators found</span></div>';
-    } else {
-      dropdown.innerHTML = results.map(c => {
-        const platformBadges = Object.keys(c.platforms).map(p => {
-          const cls = p === 'twitter' ? 'x' : p === 'tiktok' ? 'tt' : p === 'youtube' ? 'yt' : p === 'twitch' ? 'tw' : p;
-          return `<span class="mini-badge ${cls}">${platformLabel(p)}</span>`;
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+      const localResults = creators.filter(c =>
+        c.name.toLowerCase().includes(q.toLowerCase()) || c.handle.toLowerCase().includes(q.toLowerCase())
+      );
+
+      let apiResults = [];
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const data = await res.json();
+          apiResults = data.results || [];
+        }
+      } catch {}
+
+      const seenNames = new Set();
+      const combined = [];
+
+      for (const c of localResults) {
+        seenNames.add(c.name.toLowerCase());
+        combined.push({ type: 'local', data: c });
+      }
+      for (const r of apiResults) {
+        if (!seenNames.has(r.name.toLowerCase())) {
+          seenNames.add(r.name.toLowerCase());
+          combined.push({ type: 'api', data: r });
+        }
+      }
+
+      if (combined.length === 0) {
+        dropdown.innerHTML = '<div class="search-result"><span style="color:var(--text-muted)">No creators found</span></div>';
+      } else {
+        dropdown.innerHTML = combined.map(item => {
+          if (item.type === 'local') {
+            const c = item.data;
+            const platformBadges = Object.keys(c.platforms).map(p => {
+              const cls = p === 'twitter' ? 'x' : p === 'tiktok' ? 'tt' : p === 'youtube' ? 'yt' : p === 'twitch' ? 'tw' : p;
+              return `<span class="mini-badge ${cls}">${platformLabel(p)}</span>`;
+            }).join('');
+            return `
+              <div class="search-result" data-creator="${c.id}" data-type="local">
+                <div class="search-result-avatar">${c.avatar}</div>
+                <div class="search-result-info">
+                  <div class="search-result-name">${c.name}</div>
+                  <div class="search-result-platforms">${platformBadges}</div>
+                </div>
+              </div>`;
+          } else {
+            const r = item.data;
+            const avatarHtml = r.avatar
+              ? `<img src="${r.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />`
+              : `<div class="search-result-avatar">${r.name.substring(0,2).toUpperCase()}</div>`;
+            const badge = `<span class="mini-badge ${platformClass(r.platform)}">${platformLabel(r.platform)}</span>`;
+            const subsText = r.subscribers ? `<span style="font-size:0.7rem;color:var(--text-muted);margin-left:8px;">${formatNumber(r.subscribers)} subs</span>` : '';
+            return `
+              <div class="search-result" data-api-id="${r.id}" data-api-platform="${r.platform}" data-type="api">
+                ${avatarHtml}
+                <div class="search-result-info">
+                  <div class="search-result-name">${r.name}${subsText}</div>
+                  <div class="search-result-platforms">${badge}${r.isLive ? '<span class="mini-badge" style="background:rgba(255,0,0,0.2);color:#ff4444;">LIVE</span>' : ''}</div>
+                </div>
+              </div>`;
+          }
         }).join('');
-        return `
-          <div class="search-result" data-creator="${c.id}">
-            <div class="search-result-avatar">${c.avatar}</div>
-            <div class="search-result-info">
-              <div class="search-result-name">${c.name}</div>
-              <div class="search-result-platforms">${platformBadges}</div>
-            </div>
-          </div>`;
-      }).join('');
-    }
-    dropdown.classList.remove('hidden');
-    dropdown.querySelectorAll('.search-result[data-creator]').forEach(el => {
-      el.addEventListener('click', () => {
-        openProfile(el.dataset.creator);
-        dropdown.classList.add('hidden');
-        input.value = '';
+      }
+
+      dropdown.classList.remove('hidden');
+
+      dropdown.querySelectorAll('.search-result[data-type="local"]').forEach(el => {
+        el.addEventListener('click', () => {
+          openProfile(el.dataset.creator);
+          dropdown.classList.add('hidden');
+          input.value = '';
+        });
       });
-    });
+      dropdown.querySelectorAll('.search-result[data-type="api"]').forEach(el => {
+        el.addEventListener('click', () => {
+          openApiProfile(el.dataset.apiPlatform, el.dataset.apiId);
+          dropdown.classList.add('hidden');
+          input.value = '';
+        });
+      });
+    }, 300);
   });
 
   document.addEventListener('click', e => {
@@ -183,6 +240,264 @@ function openProfile(creatorId) {
   destroyCharts();
   showPage('profile');
   renderProfile(creator);
+}
+
+async function openApiProfile(platform, id) {
+  destroyCharts();
+  showPage('profile');
+  const container = document.getElementById('profile-content');
+  container.innerHTML = `
+    <div style="text-align:center;padding:80px 24px;">
+      <div class="profile-avatar" style="margin:0 auto 20px;animation:pulse-dot 1s infinite;">...</div>
+      <p style="color:var(--text-secondary);">Loading live data...</p>
+    </div>`;
+
+  try {
+    if (platform === 'youtube') {
+      const res = await fetch(`/api/youtube?channelId=${id}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      renderApiYoutubeProfile(data);
+    } else if (platform === 'twitch') {
+      const res = await fetch(`/api/twitch?userId=${id}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      renderApiTwitchProfile(data);
+    }
+  } catch (err) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:80px 24px;">
+        <p style="color:var(--neon-pink);">Failed to load: ${err.message}</p>
+        <p style="color:var(--text-muted);margin-top:8px;">The API may not be configured yet. Try a creator from the homepage.</p>
+      </div>`;
+  }
+}
+
+function renderApiYoutubeProfile(data) {
+  const container = document.getElementById('profile-content');
+  const avatarHtml = data.avatar
+    ? `<img src="${data.avatar}" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 30px var(--accent-glow);" />`
+    : `<div class="profile-avatar">${data.name.substring(0,2).toUpperCase()}</div>`;
+
+  const lf = data.longform;
+  const sh = data.shorts;
+
+  container.innerHTML = `
+    <div class="profile-header">
+      <div class="profile-top">
+        ${avatarHtml}
+        <div class="profile-info">
+          <h1>${data.name}</h1>
+          <div class="profile-handle">${data.handle || ''}</div>
+          <div class="profile-badges">
+            <span class="platform-badge yt" style="font-size:0.75rem;padding:4px 12px;">YouTube</span>
+            ${data.country !== 'Unknown' ? `<span class="platform-badge" style="font-size:0.75rem;padding:4px 12px;">${data.country}</span>` : ''}
+            <span style="font-size:0.75rem;color:var(--neon-green);padding:4px 8px;">LIVE DATA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Subscribers</div>
+          <div class="stat-value live" id="live-api-subs">${formatNumber(data.subscribers)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Views</div>
+          <div class="stat-value live" id="live-api-views">${formatNumber(data.totalViews)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Videos</div>
+          <div class="stat-value">${data.videoCount.toLocaleString()}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Est. Monthly Revenue</div>
+          <div class="stat-value" style="color:var(--neon-green)">${formatMoney(data.estimatedMonthlyRevenue)}</div>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 16px;font-size:1.2rem;">YouTube Revenue Breakdown: Long-form vs Shorts</h3>
+
+      <div class="yt-split">
+        <div class="yt-split-card longform">
+          <div class="yt-split-title">Long-form Content <span class="tag lf-tag">Videos</span></div>
+          <div class="yt-split-stats">
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Recent Views (50 videos)</span>
+              <span class="yt-split-stat-value">${formatNumber(lf.recentViews)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Long-form Videos Found</span>
+              <span class="yt-split-stat-value">${lf.count}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Avg Views / Video</span>
+              <span class="yt-split-stat-value">${formatNumber(lf.avgViews)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Estimated CPM</span>
+              <span class="yt-split-stat-value">$${lf.cpm.toFixed(2)}</span>
+            </div>
+            <div class="yt-split-stat" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;">
+              <span class="yt-split-stat-label" style="font-weight:700;color:var(--text-primary);">Est. Monthly Revenue</span>
+              <span class="yt-split-stat-value" style="color:var(--neon-green);font-size:1.3rem;">${formatMoney(lf.monthlyRevenue)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Per View Earnings</span>
+              <span class="yt-split-stat-value" style="color:var(--neon-green)">$${lf.perViewEarning.toFixed(5)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="yt-split-card shorts">
+          <div class="yt-split-title">Shorts <span class="tag sh-tag">Short-form</span></div>
+          <div class="yt-split-stats">
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Recent Views (50 videos)</span>
+              <span class="yt-split-stat-value">${formatNumber(sh.recentViews)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Shorts Found</span>
+              <span class="yt-split-stat-value">${sh.count}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Avg Views / Short</span>
+              <span class="yt-split-stat-value">${formatNumber(sh.avgViews)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">RPM (per 1K)</span>
+              <span class="yt-split-stat-value">$${sh.rpm.toFixed(2)}</span>
+            </div>
+            <div class="yt-split-stat" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;">
+              <span class="yt-split-stat-label" style="font-weight:700;color:var(--text-primary);">Est. Monthly Revenue</span>
+              <span class="yt-split-stat-value" style="color:var(--neon-orange);font-size:1.3rem;">${formatMoney(sh.monthlyRevenue)}</span>
+            </div>
+            <div class="yt-split-stat">
+              <span class="yt-split-stat-label">Per View Earnings</span>
+              <span class="yt-split-stat-value" style="color:var(--neon-orange)">$${sh.perViewEarning.toFixed(6)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ad-slot"><div class="ad-placeholder">Advertisement</div></div>
+
+      ${data.recentVideos && data.recentVideos.length > 0 ? `
+        <h3 style="margin:24px 0 16px;">Recent Videos</h3>
+        <div style="display:grid;gap:8px;">
+          ${data.recentVideos.map(v => `
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.title}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+                  ${v.isShort ? '<span class="tag sh-tag" style="font-size:0.6rem;padding:1px 6px;">SHORT</span>' : '<span class="tag lf-tag" style="font-size:0.6rem;padding:1px 6px;">VIDEO</span>'}
+                  ${new Date(v.publishedAt).toLocaleDateString()}
+                </div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:16px;">
+                <div style="font-family:var(--font-mono);font-weight:700;">${formatNumber(v.views)}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">${formatNumber(v.likes)} likes</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  startLiveCounter('live-api-subs', data.subscribers);
+  startLiveCounter('live-api-views', data.totalViews);
+}
+
+function renderApiTwitchProfile(data) {
+  const container = document.getElementById('profile-content');
+  const avatarHtml = data.avatar
+    ? `<img src="${data.avatar}" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--tw-purple);box-shadow:0 0 30px rgba(145,70,255,0.3);" />`
+    : `<div class="profile-avatar">${data.name.substring(0,2).toUpperCase()}</div>`;
+
+  const est = data.estimates;
+
+  container.innerHTML = `
+    <div class="profile-header">
+      <div class="profile-top">
+        ${avatarHtml}
+        <div class="profile-info">
+          <h1>${data.name}</h1>
+          <div class="profile-handle">@${data.login}</div>
+          <div class="profile-badges">
+            <span class="platform-badge tw" style="font-size:0.75rem;padding:4px 12px;">Twitch</span>
+            ${data.broadcasterType ? `<span class="platform-badge" style="font-size:0.75rem;padding:4px 12px;">${data.broadcasterType}</span>` : ''}
+            ${data.isLive ? '<span style="font-size:0.75rem;color:#ff4444;padding:4px 8px;background:rgba(255,0,0,0.15);border-radius:4px;">LIVE NOW</span>' : ''}
+            <span style="font-size:0.75rem;color:var(--neon-green);padding:4px 8px;">LIVE DATA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Followers</div>
+          <div class="stat-value live" id="live-tw-api-fol">${formatNumber(data.followers)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Est. Subscribers</div>
+          <div class="stat-value" style="color:var(--tw-purple)">${formatNumber(est.subscribers)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">${data.isLive ? 'Current Viewers' : 'Est. Avg Viewers'}</div>
+          <div class="stat-value">${formatNumber(data.isLive ? data.stream.viewerCount : est.avgViewers)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Account Created</div>
+          <div class="stat-value" style="font-size:1rem;">${new Date(data.createdAt).toLocaleDateString()}</div>
+        </div>
+      </div>
+
+      ${data.isLive ? `
+        <div class="detail-card" style="margin:24px 0;border-color:rgba(255,0,0,0.3);background:linear-gradient(135deg,rgba(255,0,0,0.05),var(--bg-card));">
+          <h3 style="color:#ff4444;">Currently Live</h3>
+          <p><strong>${data.stream.title}</strong></p>
+          <p style="color:var(--text-muted);">Playing: ${data.stream.gameName} | ${formatNumber(data.stream.viewerCount)} viewers</p>
+        </div>
+      ` : ''}
+
+      ${data.description ? `<p style="color:var(--text-secondary);margin:16px 0;max-width:600px;">${data.description}</p>` : ''}
+
+      <h3 style="margin:24px 0 16px;">Estimated Earnings</h3>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Sub Revenue / Month</div>
+          <div class="stat-value" style="color:var(--neon-green)">${formatMoney(est.subRevenue)}</div>
+          <div class="stat-change">50/50 split @ $${est.subTiers[0].creatorCut}/sub</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ad Revenue / Month</div>
+          <div class="stat-value" style="color:var(--neon-green)">${formatMoney(est.adRevenue)}</div>
+          <div class="stat-change">$3.50 CPM x 55% cut</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Monthly Rev</div>
+          <div class="stat-value" style="color:var(--neon-green)">${formatMoney(est.totalMonthlyRevenue)}</div>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 16px;">Subscription Tiers</h3>
+      <div class="stats-row">
+        ${est.subTiers.map(t => `
+          <div class="stat-card">
+            <div class="stat-label">${t.name}</div>
+            <div class="stat-value">$${t.price}</div>
+            <div class="stat-change">Creator gets $${t.creatorCut.toFixed(2)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  startLiveCounter('live-tw-api-fol', data.followers);
 }
 
 function renderProfile(creator) {

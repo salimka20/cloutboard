@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\salim\\\\Desktop\\\\website\\\\src\" -Force)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd C:\\\\Users\\\\salim\\\\Desktop\\\\website; gh repo create cloutboard --public --source=. --remote=origin --push --description \"Multi-platform creator analytics - YouTube, Twitch, Kick, TikTok, Twitter, Instagram\" 2>&1)",
+      "WebSearch"
     ]
   }
 }
