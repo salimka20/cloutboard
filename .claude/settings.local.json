@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\salim\\\\Desktop\\\\website\\\\src\" -Force)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

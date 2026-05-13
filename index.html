@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloutboard — Multi-Platform Creator Analytics</title>
+  <meta name="description" content="Track any creator's analytics across YouTube, Twitch, Kick, TikTok, Twitter & Instagram. Live stats, earnings estimates, and platform comparisons — all free." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
+
+  <!-- Ad placeholder: Google AdSense -->
+  <script async data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+</head>
+<body>
+  <!-- ============== NAVBAR ============== -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo" data-page="home">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">Clout<span class="logo-accent">board</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#" data-page="home" class="nav-link active">Home</a>
+        <a href="#" data-page="compare" class="nav-link">Twitch vs Kick</a>
+        <a href="#" data-page="earnings" class="nav-link">Earnings Calculator</a>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="nav-search-input" placeholder="Search any creator..." autocomplete="off" />
+        <div id="nav-search-dropdown" class="search-dropdown hidden"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============== MAIN CONTENT ============== -->
+  <main id="app">
+
+    <!-- ===== HOME PAGE ===== -->
+    <section id="page-home" class="page active">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-glow"></div>
+        <h1 class="hero-title">
+          Track <span class="gradient-text">Every Creator.</span><br/>
+          <span class="gradient-text-alt">Every Platform.</span> Live.
+        </h1>
+        <p class="hero-sub">Real-time analytics for YouTube, Twitch, Kick, TikTok, Twitter &amp; Instagram — completely free.</p>
+        <div class="hero-search">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="hero-search-input" placeholder="Search by creator name (e.g. MrBeast, Ninja, Pokimane)..." autocomplete="off" />
+            <div id="hero-search-dropdown" class="search-dropdown hidden"></div>
+          </div>
+        </div>
+        <div class="hero-platforms">
+          <span class="platform-badge yt"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg> YouTube</span>
+          <span class="platform-badge tw"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715l5.143 7.714-5.143 7.715H11.57l5.143-7.715-5.143-7.714zm-4.286 0H9l5.143 7.714L9 20.143H7.286l5.143-7.715L7.286 4.714z"/></svg> Twitch</span>
+          <span class="platform-badge kick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h4v6l4-6h5l-5.5 7L18 17h-5l-4-5v5H5V3z"/></svg> Kick</span>
+          <span class="platform-badge tt"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.88-2.88 2.89 2.89 0 0 1 2.88-2.88c.28 0 .56.04.82.1v-3.5a6.37 6.37 0 0 0-.82-.05A6.34 6.34 0 0 0 3.14 15.2a6.34 6.34 0 0 0 6.35 6.33 6.34 6.34 0 0 0 6.35-6.33V8.9a8.24 8.24 0 0 0 4.8 1.54V7a4.84 4.84 0 0 1-1.05-.31z"/></svg> TikTok</span>
+          <span class="platform-badge x"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X / Twitter</span>
+          <span class="platform-badge ig"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg> Instagram</span>
+        </div>
+      </div>
+
+      <!-- Trending Creators -->
+      <div class="section">
+        <h2 class="section-title">Trending Creators</h2>
+        <div id="trending-grid" class="creator-grid"></div>
+      </div>
+
+      <!-- Ad Slot -->
+      <div class="ad-slot" data-ad="banner-home">
+        <div class="ad-placeholder">Advertisement</div>
+      </div>
+
+      <!-- Top Earners -->
+      <div class="section">
+        <h2 class="section-title">Estimated Top Earners This Month</h2>
+        <div id="top-earners" class="earners-table"></div>
+      </div>
+    </section>
+
+    <!-- ===== CREATOR PROFILE PAGE ===== -->
+    <section id="page-profile" class="page">
+      <div id="profile-content"></div>
+    </section>
+
+    <!-- ===== TWITCH vs KICK COMPARISON PAGE ===== -->
+    <section id="page-compare" class="page">
+      <div class="compare-page">
+        <h1 class="page-title">Twitch <span class="vs-badge">VS</span> Kick</h1>
+        <p class="page-sub">A complete breakdown to help you choose the right streaming platform</p>
+
+        <!-- Overview Cards -->
+        <div class="compare-grid">
+          <div class="compare-card twitch-card">
+            <div class="compare-card-header">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="compare-platform-icon"><path d="M11.571 4.714h1.715l5.143 7.714-5.143 7.715H11.57l5.143-7.715-5.143-7.714zm-4.286 0H9l5.143 7.714L9 20.143H7.286l5.143-7.715L7.286 4.714z"/></svg>
+              <h2>Twitch</h2>
+            </div>
+            <div class="compare-card-body">
+              <div class="compare-stat">
+                <span class="compare-label">Revenue Split</span>
+                <span class="compare-value">50/50</span>
+                <span class="compare-note">Top partners may get 70/30</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Sub Tiers</span>
+                <div class="sub-tiers">
+                  <div class="tier"><span class="tier-name">Tier 1</span><span class="tier-price">$4.99/mo</span><span class="tier-cut">~$2.50 to creator</span></div>
+                  <div class="tier"><span class="tier-name">Tier 2</span><span class="tier-price">$9.99/mo</span><span class="tier-cut">~$5.00 to creator</span></div>
+                  <div class="tier"><span class="tier-name">Tier 3</span><span class="tier-price">$24.99/mo</span><span class="tier-cut">~$12.50 to creator</span></div>
+                </div>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Bits (Donations)</span>
+                <span class="compare-value">1 Bit = $0.01</span>
+                <span class="compare-note">Twitch takes ~29% when viewers buy Bits</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Ad Revenue</span>
+                <span class="compare-value">$3.50 per 1000 views</span>
+                <span class="compare-note">Pre-rolls + mid-rolls; 55% to creator</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Payout Threshold</span>
+                <span class="compare-value">$50 minimum</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Partner Requirements</span>
+                <span class="compare-value-sm">75 avg viewers, 25h streamed, 12 unique days in 30 days</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="compare-card kick-card">
+            <div class="compare-card-header">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="compare-platform-icon"><path d="M5 3h4v6l4-6h5l-5.5 7L18 17h-5l-4-5v5H5V3z"/></svg>
+              <h2>Kick</h2>
+            </div>
+            <div class="compare-card-body">
+              <div class="compare-stat">
+                <span class="compare-label">Revenue Split</span>
+                <span class="compare-value kick-highlight">95/5</span>
+                <span class="compare-note">Industry-leading creator split</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Sub Tiers</span>
+                <div class="sub-tiers">
+                  <div class="tier"><span class="tier-name">Standard</span><span class="tier-price">$4.99/mo</span><span class="tier-cut kick-highlight">~$4.74 to creator</span></div>
+                </div>
+                <span class="compare-note">Single tier only — simpler model</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Kicks (Donations)</span>
+                <span class="compare-value">Direct tipping</span>
+                <span class="compare-note">No middle-man cut on tips</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Ad Revenue</span>
+                <span class="compare-value">Minimal ads</span>
+                <span class="compare-note">Kick focuses on sub revenue over ads</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Payout Threshold</span>
+                <span class="compare-value">No minimum</span>
+              </div>
+              <div class="compare-stat">
+                <span class="compare-label">Partner Requirements</span>
+                <span class="compare-value-sm">75 followers, stream 4h in last 30 days — much lower barrier</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad Slot -->
+        <div class="ad-slot" data-ad="banner-compare">
+          <div class="ad-placeholder">Advertisement</div>
+        </div>
+
+        <!-- Detailed Comparison -->
+        <div class="compare-details">
+          <h2 class="section-title">How Each Platform Pays Creators</h2>
+
+          <div class="detail-card">
+            <h3>Twitch — The Established Giant</h3>
+            <p>Twitch has been the dominant live streaming platform since 2011. Revenue comes from <strong>subscriptions</strong> (3 tiers), <strong>Bits</strong> (virtual currency viewers buy to cheer), and <strong>ads</strong>. The standard revenue split is 50/50 — meaning Twitch keeps half of your sub money. Top-tier partners can negotiate a 70/30 split, but this is rare and usually requires thousands of concurrent viewers.</p>
+            <p><strong>Ads</strong> pay roughly $3.50 CPM (per 1,000 views), with creators getting about 55% of ad revenue. Twitch runs pre-roll ads on channels by default, which can drive viewers away. Creators can run ad breaks to disable pre-rolls temporarily.</p>
+            <p><strong>Best for:</strong> Creators who want the largest built-in audience and don't mind a lower revenue split. If you're just starting out, Twitch's discoverability is unmatched.</p>
+          </div>
+
+          <div class="detail-card">
+            <h3>Kick — The Creator-First Challenger</h3>
+            <p>Kick launched in 2023 with one killer feature: a <strong>95/5 revenue split</strong>. For every $4.99 subscription, you keep $4.74 instead of $2.50 on Twitch. That's nearly <strong>double the income per subscriber</strong>.</p>
+            <p>Kick runs very few ads, relying instead on its parent company (Stake) for funding. The platform focuses on giving creators the highest possible cut. Tipping is direct with no platform cut. The partner requirements are dramatically lower — just 75 followers and 4 hours streamed.</p>
+            <p><strong>Best for:</strong> Creators who already have an audience they can bring over, or new streamers who want to maximize earnings from day one. The lower barrier to monetization means you start earning sooner.</p>
+          </div>
+
+          <div class="detail-card highlight-card">
+            <h3>The Verdict</h3>
+            <p>If you're choosing between the two: <strong>Twitch has the audience, Kick has the money.</strong> Many successful creators stream on both. Start on Twitch for discoverability, simulcast to Kick for higher revenue. If you already have a following on YouTube, TikTok, or Twitter — Kick's 95/5 split means you keep almost everything.</p>
+          </div>
+        </div>
+
+        <!-- Earnings Comparison Calculator -->
+        <div class="compare-calc">
+          <h2 class="section-title">Quick Earnings Comparison</h2>
+          <p class="section-sub">See how much you'd earn on each platform</p>
+          <div class="calc-inputs">
+            <div class="calc-field">
+              <label>Monthly Subscribers</label>
+              <input type="number" id="calc-subs" value="500" min="0" />
+            </div>
+            <div class="calc-field">
+              <label>Avg Concurrent Viewers</label>
+              <input type="number" id="calc-viewers" value="200" min="0" />
+            </div>
+            <div class="calc-field">
+              <label>Hours Streamed / Month</label>
+              <input type="number" id="calc-hours" value="100" min="0" />
+            </div>
+          </div>
+          <div class="calc-results">
+            <div class="calc-result twitch-result">
+              <h4>Twitch Estimated Monthly</h4>
+              <span id="calc-twitch-total" class="calc-total">$0</span>
+              <div class="calc-breakdown">
+                <span>Subs: <b id="calc-twitch-subs">$0</b></span>
+                <span>Ads: <b id="calc-twitch-ads">$0</b></span>
+              </div>
+            </div>
+            <div class="calc-result kick-result">
+              <h4>Kick Estimated Monthly</h4>
+              <span id="calc-kick-total" class="calc-total">$0</span>
+              <div class="calc-breakdown">
+                <span>Subs: <b id="calc-kick-subs">$0</b></span>
+                <span>Ads: <b id="calc-kick-ads">$0</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EARNINGS CALCULATOR PAGE ===== -->
+    <section id="page-earnings" class="page">
+      <div class="earnings-page">
+        <h1 class="page-title">Creator Earnings <span class="gradient-text">Calculator</span></h1>
+        <p class="page-sub">Estimate how much a creator earns across every platform</p>
+
+        <div class="earnings-grid">
+          <!-- YouTube -->
+          <div class="earnings-card">
+            <div class="earnings-card-header yt-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81z"/><path d="M9.55 15.57V8.43L15.82 12l-6.27 3.57z" fill="#0a0a0f"/></svg>
+              <h3>YouTube</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Long-form Views / Month</label>
+                <input type="number" id="earn-yt-views" value="1000000" min="0" />
+                <span class="rate-info">CPM: $3 – $8 (avg ~$5)</span>
+              </div>
+              <div class="earnings-field">
+                <label>Shorts Views / Month</label>
+                <input type="number" id="earn-yt-shorts" value="5000000" min="0" />
+                <span class="rate-info">Shorts RPM: $0.04 – $0.08 per 1K</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row"><span>Long-form Revenue</span><b id="earn-yt-lf-rev">$0</b></div>
+                <div class="result-row"><span>Shorts Revenue</span><b id="earn-yt-sh-rev">$0</b></div>
+                <div class="result-row total"><span>Total YouTube</span><b id="earn-yt-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TikTok -->
+          <div class="earnings-card">
+            <div class="earnings-card-header tt-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.88-2.88 2.89 2.89 0 0 1 2.88-2.88c.28 0 .56.04.82.1v-3.5a6.37 6.37 0 0 0-.82-.05A6.34 6.34 0 0 0 3.14 15.2a6.34 6.34 0 0 0 6.35 6.33 6.34 6.34 0 0 0 6.35-6.33V8.9a8.24 8.24 0 0 0 4.8 1.54V7a4.84 4.84 0 0 1-1.05-.31z"/></svg>
+              <h3>TikTok</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Views / Month</label>
+                <input type="number" id="earn-tt-views" value="10000000" min="0" />
+                <span class="rate-info">Creator Fund: $0.02 – $0.05 per 1K views</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row total"><span>Total TikTok</span><b id="earn-tt-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Twitch -->
+          <div class="earnings-card">
+            <div class="earnings-card-header twitch-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715l5.143 7.714-5.143 7.715H11.57l5.143-7.715-5.143-7.714zm-4.286 0H9l5.143 7.714L9 20.143H7.286l5.143-7.715L7.286 4.714z"/></svg>
+              <h3>Twitch</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Subscribers</label>
+                <input type="number" id="earn-tw-subs" value="1000" min="0" />
+              </div>
+              <div class="earnings-field">
+                <label>Avg Viewers</label>
+                <input type="number" id="earn-tw-viewers" value="500" min="0" />
+              </div>
+              <div class="earnings-field">
+                <label>Hours / Month</label>
+                <input type="number" id="earn-tw-hours" value="120" min="0" />
+                <span class="rate-info">Sub split: 50/50 | Ad CPM: ~$3.50</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row"><span>Sub Revenue</span><b id="earn-tw-sub-rev">$0</b></div>
+                <div class="result-row"><span>Ad Revenue</span><b id="earn-tw-ad-rev">$0</b></div>
+                <div class="result-row total"><span>Total Twitch</span><b id="earn-tw-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kick -->
+          <div class="earnings-card">
+            <div class="earnings-card-header kick-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h4v6l4-6h5l-5.5 7L18 17h-5l-4-5v5H5V3z"/></svg>
+              <h3>Kick</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Subscribers</label>
+                <input type="number" id="earn-ki-subs" value="1000" min="0" />
+                <span class="rate-info">Sub: $4.99 | Creator keeps 95%</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row total"><span>Total Kick</span><b id="earn-ki-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Twitter / X -->
+          <div class="earnings-card">
+            <div class="earnings-card-header x-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <h3>X / Twitter</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Impressions / Month</label>
+                <input type="number" id="earn-x-impressions" value="5000000" min="0" />
+                <span class="rate-info">Ad Rev Share: ~$0.10 – $0.30 per 1K impressions (X Premium creators)</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row total"><span>Total X</span><b id="earn-x-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instagram -->
+          <div class="earnings-card">
+            <div class="earnings-card-header ig-header">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+              <h3>Instagram</h3>
+            </div>
+            <div class="earnings-card-body">
+              <div class="earnings-field">
+                <label>Reels Views / Month</label>
+                <input type="number" id="earn-ig-views" value="2000000" min="0" />
+                <span class="rate-info">Reels Bonus: $0.01 – $0.03 per 1K views (invite-only program)</span>
+              </div>
+              <div class="earnings-result">
+                <div class="result-row total"><span>Total Instagram</span><b id="earn-ig-total">$0</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad Slot -->
+        <div class="ad-slot" data-ad="banner-earnings">
+          <div class="ad-placeholder">Advertisement</div>
+        </div>
+
+        <!-- Grand Total -->
+        <div class="grand-total-card">
+          <h2>Combined Monthly Earnings Estimate</h2>
+          <span id="grand-total" class="grand-total-number">$0</span>
+          <p class="disclaimer">These are estimates based on publicly available CPM/RPM data. Actual earnings vary based on audience demographics, content category, geography, brand deals, and more.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============== FOOTER ============== -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">Clout<span class="logo-accent">board</span></span>
+        <p>Free multi-platform creator analytics.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Platforms</h4>
+          <a href="#">YouTube</a>
+          <a href="#">Twitch</a>
+          <a href="#">Kick</a>
+          <a href="#">TikTok</a>
+          <a href="#">X / Twitter</a>
+          <a href="#">Instagram</a>
+        </div>
+        <div class="footer-col">
+          <h4>Tools</h4>
+          <a href="#" data-page="earnings">Earnings Calculator</a>
+          <a href="#" data-page="compare">Twitch vs Kick</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Cloutboard. All data is estimated and publicly sourced. Not affiliated with any platform.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
